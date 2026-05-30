@@ -2,40 +2,28 @@
 <html lang="sq">
 <head>
     <meta charset="UTF-8">
-    <title>Paneli i Berberit</title>
-    <style>
-        body { font-family: sans-serif; padding: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin</title>
 </head>
-<body>
-    <h1>Rezervimet për sot</h1>
-    <table id="bookingsTable">
-        <thead>
-            <tr>
-                <th>Klienti</th>
-                <th>Telefoni</th>
-                <th>Ora</th>
-                <th>Statusi</th>
-            </tr>
-        </thead>
+<body style="font-family:sans-serif; padding:10px;">
+    <h1>Rezervimet</h1>
+    <table border="1" width="100%">
+        <thead><tr><th>Klienti</th><th>Ora</th><th>Veprim</th></tr></thead>
         <tbody id="bookingsBody"></tbody>
     </table>
-
     <script>
+        async function update(id, status) {
+            await fetch(`/api/admin/bookings/${id}`, { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({status})});
+            location.reload();
+        }
         async function fetchBookings() {
             const today = new Date().toISOString().split('T')[0];
-            const response = await fetch(`/api/admin/bookings?date=${today}`);
-            const data = await response.json();
-            const body = document.getElementById('bookingsBody');
-            body.innerHTML = data.map(b => `
-                <tr>
-                    <td>${b.customer_name}</td>
-                    <td>${b.phone}</td>
-                    <td>${b.time}</td>
-                    <td>${b.status}</td>
-                </tr>
+            const res = await fetch(`/api/admin/bookings?date=${today}`);
+            const data = await res.json();
+            document.getElementById('bookingsBody').innerHTML = data.map(b => `
+                <tr><td>${b.customer_name}</td><td>${b.time}</td>
+                <td><button onclick="update(${b.id}, 'confirmed')">Konfirmo</button>
+                    <button onclick="update(${b.id}, 'cancelled')">Anulo</button></td></tr>
             `).join('');
         }
         fetchBookings();
