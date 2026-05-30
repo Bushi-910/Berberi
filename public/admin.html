@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <title>Paneli i Berberit</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+    </style>
+</head>
+<body>
+    <h1>Rezervimet për sot</h1>
+    <table id="bookingsTable">
+        <thead>
+            <tr>
+                <th>Klienti</th>
+                <th>Telefoni</th>
+                <th>Ora</th>
+                <th>Statusi</th>
+            </tr>
+        </thead>
+        <tbody id="bookingsBody"></tbody>
+    </table>
+
+    <script>
+        async function fetchBookings() {
+            const today = new Date().toISOString().split('T')[0];
+            const response = await fetch(`/api/admin/bookings?date=${today}`);
+            const data = await response.json();
+            const body = document.getElementById('bookingsBody');
+            body.innerHTML = data.map(b => `
+                <tr>
+                    <td>${b.customer_name}</td>
+                    <td>${b.phone}</td>
+                    <td>${b.time}</td>
+                    <td>${b.status}</td>
+                </tr>
+            `).join('');
+        }
+        fetchBookings();
+    </script>
+</body>
+</html>
