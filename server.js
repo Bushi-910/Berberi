@@ -6,8 +6,13 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-// Shërben automatikisht skedarët nga folderi 'public'
+// Kjo shërben skedarët nga folderi 'public'
 app.use(express.static('public')); 
+
+// SHTESA QË TË HAPET FAQJA KRYESORE KUR SHKON TE LINKU
+app.get('/', (req, res) => {
+    res.sendFile('index.html', { root: './public' });
+});
 
 const PORT = process.env.PORT || 8000;
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
