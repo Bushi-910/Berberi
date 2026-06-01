@@ -1,29 +1,47 @@
 <!DOCTYPE html>
 <html lang="sq">
-<body class="bg-black text-white p-8 font-sans">
-    <h2 class="text-2xl font-bold mb-6">Rezervimet</h2>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black text-white p-6 font-sans">
+    <h2 class="text-2xl font-bold mb-6 border-b border-zinc-800 pb-4">Rezervimet</h2>
     <div class="overflow-x-auto">
-        <table class="w-full border-collapse">
+        <table class="w-full text-left border-collapse">
             <thead>
-                <tr class="text-zinc-500 border-b border-zinc-800 text-sm">
-                    <th class="p-3 text-left">Klienti</th><th class="p-3 text-left">Telefoni</th><th class="p-3 text-left">Data</th><th class="p-3 text-left">Ora</th>
+                <tr class="text-zinc-400 border-b border-zinc-800">
+                    <th class="p-3">Klienti</th>
+                    <th class="p-3">Telefoni</th>
+                    <th class="p-3">Dita</th>
+                    <th class="p-3">Ora</th>
                 </tr>
             </thead>
-            <tbody id="tbl" class="text-sm"></tbody>
+            <tbody id="tbl"></tbody>
         </table>
     </div>
+
     <script>
-        fetch('/api/admin/all').then(r => r.json()).then(data => {
+        async function loadData() {
+            const res = await fetch('/api/admin/all');
+            const data = await res.json();
             const tbl = document.getElementById('tbl');
+            const dite = ["E Diel", "E Hënë", "E Martë", "E Mërkurë", "E Enjte", "E Premte", "E Shtunë"];
+            
+            tbl.innerHTML = '';
             data.forEach(b => {
-                tbl.innerHTML += `<tr class="border-b border-zinc-900">
-                    <td class="p-3">${b.customer_name}</td>
-                    <td class="p-3">${b.phone}</td>
-                    <td class="p-3">${b.date}</td>
-                    <td class="p-3">${b.time}</td>
-                </tr>`;
+                let dateObj = new Date(b.date);
+                let emriDites = dite[dateObj.getDay()];
+                tbl.innerHTML += `
+                    <tr class="border-b border-zinc-900">
+                        <td class="p-3">${b.customer_name}</td>
+                        <td class="p-3">${b.phone}</td>
+                        <td class="p-3 font-semibold">${emriDites}</td>
+                        <td class="p-3">${b.time}</td>
+                    </tr>`;
             });
-        });
+        }
+        loadData();
     </script>
 </body>
 </html>
