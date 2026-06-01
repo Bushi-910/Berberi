@@ -10,38 +10,26 @@
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
-                <tr class="text-zinc-400 border-b border-zinc-800">
-                    <th class="p-3">Klienti</th>
-                    <th class="p-3">Telefoni</th>
-                    <th class="p-3">Dita</th>
-                    <th class="p-3">Ora</th>
+                <tr class="text-zinc-400 border-b border-zinc-800 text-sm">
+                    <th class="p-3">Klienti</th><th class="p-3">Telefoni</th><th class="p-3">Dita</th><th class="p-3">Ora</th>
                 </tr>
             </thead>
-            <tbody id="tbl"></tbody>
+            <tbody id="tbl" class="text-sm"></tbody>
         </table>
     </div>
-
     <script>
-        async function loadData() {
-            const res = await fetch('/api/admin/all');
-            const data = await res.json();
+        fetch('/api/admin/all').then(r => r.json()).then(data => {
             const tbl = document.getElementById('tbl');
             const dite = ["E Diel", "E Hënë", "E Martë", "E Mërkurë", "E Enjte", "E Premte", "E Shtunë"];
-            
-            tbl.innerHTML = '';
             data.forEach(b => {
-                let dateObj = new Date(b.date);
-                let emriDites = dite[dateObj.getDay()];
-                tbl.innerHTML += `
-                    <tr class="border-b border-zinc-900">
-                        <td class="p-3">${b.customer_name}</td>
-                        <td class="p-3">${b.phone}</td>
-                        <td class="p-3 font-semibold">${emriDites}</td>
-                        <td class="p-3">${b.time}</td>
-                    </tr>`;
+                tbl.innerHTML += `<tr class="border-b border-zinc-900">
+                    <td class="p-3">${b.customer_name}</td>
+                    <td class="p-3">${b.phone}</td>
+                    <td class="p-3 font-semibold">${dite[new Date(b.date).getDay()]}</td>
+                    <td class="p-3">${b.time}</td>
+                </tr>`;
             });
-        }
-        loadData();
+        });
     </script>
 </body>
 </html>
