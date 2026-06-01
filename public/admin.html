@@ -1,16 +1,27 @@
 <!DOCTYPE html>
 <html lang="sq">
-<body class="bg-black text-white p-6 font-sans">
-    <h2 class="text-xl mb-4">Rezervimet</h2>
-    <table id="tbl" class="w-full text-left border-collapse">
-        <tr><th>Klienti</th><th>Telefoni</th><th>Dita</th><th>Ora</th></tr>
-    </table>
+<body class="bg-black text-white p-8 font-sans">
+    <h2 class="text-2xl font-bold mb-6">Rezervimet</h2>
+    <div class="overflow-x-auto">
+        <table class="w-full border-collapse">
+            <thead>
+                <tr class="text-zinc-500 border-b border-zinc-800 text-sm">
+                    <th class="p-3 text-left">Klienti</th><th class="p-3 text-left">Telefoni</th><th class="p-3 text-left">Data</th><th class="p-3 text-left">Ora</th>
+                </tr>
+            </thead>
+            <tbody id="tbl" class="text-sm"></tbody>
+        </table>
+    </div>
     <script>
         fetch('/api/admin/all').then(r => r.json()).then(data => {
             const tbl = document.getElementById('tbl');
-            const d = ["Diel", "Hënë", "Martë", "Mërkurë", "Enjte", "Premte", "Shtunë"];
             data.forEach(b => {
-                tbl.innerHTML += `<tr class="border-b border-zinc-800"><td>${b.customer_name}</td><td>${b.phone}</td><td>${d[new Date(b.date).getDay()]}</td><td>${b.time}</td></tr>`;
+                tbl.innerHTML += `<tr class="border-b border-zinc-900">
+                    <td class="p-3">${b.customer_name}</td>
+                    <td class="p-3">${b.phone}</td>
+                    <td class="p-3">${b.date}</td>
+                    <td class="p-3">${b.time}</td>
+                </tr>`;
             });
         });
     </script>
