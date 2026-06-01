@@ -21,11 +21,15 @@
         fetch('/api/admin/all').then(r => r.json()).then(data => {
             const tbl = document.getElementById('tbl');
             const dite = ["E Diel", "E Hënë", "E Martë", "E Mërkurë", "E Enjte", "E Premte", "E Shtunë"];
+            
             data.forEach(b => {
+                // Shtimi i T00:00:00 siguron që data të lexohet si lokale dhe të mos kthehet pas
+                let d = new Date(b.date + 'T00:00:00'); 
+                
                 tbl.innerHTML += `<tr class="border-b border-zinc-900">
                     <td class="p-3">${b.customer_name}</td>
                     <td class="p-3">${b.phone}</td>
-                    <td class="p-3 font-semibold">${dite[new Date(b.date).getDay()]}</td>
+                    <td class="p-3 font-semibold">${dite[d.getDay()]}</td>
                     <td class="p-3">${b.time}</td>
                 </tr>`;
             });
