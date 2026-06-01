@@ -40,12 +40,17 @@
             document.getElementById(id).classList.remove('hidden');
             if(id === 'bookingView') genDates();
         }
+
         async function genDates() {
-            const cont = document.getElementById('dateButtonsContainer'); cont.innerHTML = '';
-            for(let i=0; i<3; i++) {
-                let d = new Date(); 
-                d.setDate(d.getDate()+i); 
-                // Zgjedhur: Formati lokal për të shmangur problemin e ditës së gabuar
+            const cont = document.getElementById('dateButtonsContainer'); 
+            cont.innerHTML = '';
+            let dBase = new Date(); 
+            
+            for(let i = 0; i < 3; i++) {
+                let d = new Date(dBase); 
+                d.setDate(d.getDate() + i); 
+                
+                // Formati YYYY-MM-DD i saktë për sistemin
                 let str = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
                 
                 let isWednesday = d.getDay() === 3;
@@ -56,6 +61,7 @@
                 cont.appendChild(btn);
             }
         }
+
         async function loadSlots() {
             const res = await fetch(`/api/slots?date=${sDate}`);
             const booked = await res.json();
@@ -64,7 +70,6 @@
             
             const tani = new Date();
             const oraAktuale = tani.getHours();
-            // Data lokale për krahasim
             const ditaAktuale = tani.getFullYear() + '-' + String(tani.getMonth() + 1).padStart(2, '0') + '-' + String(tani.getDate()).padStart(2, '0');
 
             ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'].forEach(t => {
@@ -80,12 +85,14 @@
                 }
             });
         }
+
         async function submitBooking() {
             const res = await fetch('/api/bookings', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ customer_name: document.getElementById('custName').value, phone: document.getElementById('custPhone').value, date: sDate, time: sTime }) });
             const data = await res.json();
             alert(data.success ? 'U rezervua me sukses!' : 'Gabim: ' + (data.error || 'Provoni perseri'));
             if(data.success) location.reload();
         }
+
         async function cancelBooking() {
             const res = await fetch('/api/delete-booking', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ customer_name: document.getElementById('delName').value, phone: document.getElementById('delPhone').value }) });
             alert((await res.json()).success ? 'U fshi!' : 'Gabim!');
