@@ -1,7 +1,5 @@
 import express from 'express';
 import pg from 'pg';
-import bcrypt from 'bcryptjs';
-import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -13,15 +11,23 @@ app.use(express.static(path.join(path.dirname(fileURLToPath(import.meta.url)), '
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
 
+// Kthen vetëm oraret e zëna për datën e caktuar
 app.get('/api/slots', async (req, res) => {
-    const allSlots = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00'];
-    const booked = await pool.query("SELECT time FROM bookings WHERE date = $1", [req.query.date]);
-    res.json(allSlots.filter(t => !booked.rows.map(r => r.time).includes(t)));
+    try {
+        const booked = await pool.query("SELECT time FROM bookings WHERE date = $1", [req.query.date]);
+        res.json(booked.rows.map(r => r.time));
+    } catch (err) { res.json([]); }
 });
 
 app.post('/api/bookings', async (req, res) => {
-    if (new Date(req.body.date).getDay() === 3) return res.status(400).json({ error: 'Pushim' });
-    await pool.query("INSERT INTO bookings (customer_name, phone, date, time) VALUES ($1, $2, $3, $4)", [req.body.customer_name, req.body.phone, req.body.date, req.body.time]);
+    const { customer_name, phone, date, time } = req.body;
+    if (new Date(date).getDay() === 3) return res.status(400).json({ error: 'Pushim' });
+
+    // Kontrolli: Një numër telefoni, një rezervim në ditë
+    const check = await pool.query("SELECT * FROM bookings WHERE date = $1 AND phone = $2", [date, phone]);
+    if (check.rows.length > 0) return res.status(400).json({ error: 'Ky numër ka bërë një rezervim për këtë ditë!' });
+
+    await pool.query("INSERT INTO bookings (customer_name, phone, date, time) VALUES ($1, $2, $3, $4)", [customer_name, phone, date, time]);
     res.json({ success: true });
 });
 
