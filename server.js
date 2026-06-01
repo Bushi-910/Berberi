@@ -7,28 +7,31 @@ import { fileURLToPath } from 'url';
 dotenv.config();
 const app = express();
 app.use(express.json());
-app.use(express.static(path.join(path.dirname(fileURLToPath(import.meta.url)), 'public')));
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+app.use(express.static(path.join(__dirname, 'public')));
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
 
-// Kthen vetëm oraret e zëna për datën e caktuar
+// API për oraret (Frontend-i merr këto dhe i shfaq si "Rezervuar")
 app.get('/api/slots', async (req, res) => {
-    try {
-        const booked = await pool.query("SELECT time FROM bookings WHERE date = $1", [req.query.date]);
-        res.json(booked.rows.map(r => r.time));
-    } catch (err) { res.json([]); }
+    const booked = await pool.query("SELECT time FROM bookings WHERE date = $1", [req.query.date]);
+    res.json(booked.rows.map(r => r.time));
 });
 
+// API për rezervimin
 app.post('/api/bookings', async (req, res) => {
     const { customer_name, phone, date, time } = req.body;
     if (new Date(date).getDay() === 3) return res.status(400).json({ error: 'Pushim' });
-
-    // Kontrolli: Një numër telefoni, një rezervim në ditë
     const check = await pool.query("SELECT * FROM bookings WHERE date = $1 AND phone = $2", [date, phone]);
-    if (check.rows.length > 0) return res.status(400).json({ error: 'Ky numër ka bërë një rezervim për këtë ditë!' });
-
+    if (check.rows.length > 0) return res.status(400).json({ error: 'Ky numër ka një rezervim sot!' });
     await pool.query("INSERT INTO bookings (customer_name, phone, date, time) VALUES ($1, $2, $3, $4)", [customer_name, phone, date, time]);
     res.json({ success: true });
+});
+
+// API për Adminin (Gjithë rezervimet)
+app.get('/api/admin/all', async (req, res) => {
+    const result = await pool.query("SELECT * FROM bookings ORDER BY date ASC, time ASC");
+    res.json(result.rows);
 });
 
 app.post('/api/delete-booking', async (req, res) => {
