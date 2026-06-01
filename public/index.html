@@ -55,23 +55,35 @@
         async function loadSlots() {
             const res = await fetch(`/api/slots?date=${sDate}`);
             const booked = await res.json();
-            const cont = document.getElementById('slotsContainer'); cont.innerHTML = '';
+            const cont = document.getElementById('slotsContainer'); 
+            cont.innerHTML = '';
+            const tani = new Date();
+            const oraAktuale = tani.getHours();
+            const ditaAktuale = tani.toISOString().split('T')[0];
+
             ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'].forEach(t => {
+                let oraSlot = parseInt(t.split(':')[0]);
                 let isBooked = booked.includes(t);
-                let btn = document.createElement('button'); btn.className = isBooked ? 'bg-zinc-950 border border-zinc-900 p-2 text-xs text-zinc-600' : 'bg-zinc-900 border border-zinc-800 p-2 text-xs';
-                btn.textContent = isBooked ? t + ' (Zënë)' : t;
-                btn.disabled = isBooked;
-                if(!isBooked) btn.onclick = () => { sTime = t; document.getElementById('bookingForm').classList.remove('hidden'); };
-                cont.appendChild(btn);
+                if (!(sDate === ditaAktuale && oraSlot <= oraAktuale)) {
+                    let btn = document.createElement('button'); 
+                    btn.className = isBooked ? 'bg-zinc-950 border border-zinc-900 p-2 text-xs text-zinc-600' : 'bg-zinc-900 border border-zinc-800 p-2 text-xs';
+                    btn.textContent = isBooked ? t + ' (Zënë)' : t;
+                    btn.disabled = isBooked;
+                    if(!isBooked) btn.onclick = () => { sTime = t; document.getElementById('bookingForm').classList.remove('hidden'); };
+                    cont.appendChild(btn);
+                }
             });
         }
         async function submitBooking() {
             const res = await fetch('/api/bookings', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ customer_name: document.getElementById('custName').value, phone: document.getElementById('custPhone').value, date: sDate, time: sTime }) });
-            alert((await res.json()).success ? 'U rezervua!' : 'Gabim!'); location.reload();
+            const data = await res.json();
+            alert(data.success ? 'U rezervua me sukses!' : 'Gabim: ' + (data.error || 'Provoni perseri'));
+            if(data.success) location.reload();
         }
         async function cancelBooking() {
             const res = await fetch('/api/delete-booking', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ customer_name: document.getElementById('delName').value, phone: document.getElementById('delPhone').value }) });
-            alert((await res.json()).success ? 'U fshi!' : 'Gabim!'); location.reload();
+            alert((await res.json()).success ? 'U fshi!' : 'Gabim!');
+            location.reload();
         }
     </script>
 </body>
