@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-black text-white font-sans min-h-screen p-6 flex flex-col justify-between">
-    
     <div id="homeView" class="flex flex-col items-center text-center my-auto max-w-md mx-auto w-full">
         <div class="w-20 h-20 bg-zinc-900 border border-zinc-800 rounded-full flex items-center justify-center mb-6"><span class="text-2xl">✂️</span></div>
         <h2 class="text-3xl font-extrabold tracking-tight mb-2">Salloni i Berberit</h2>
@@ -54,32 +53,37 @@
             for (let i = 0; i < 3; i++) {
                 let d = new Date();
                 d.setDate(d.getDate() + i);
+                const dayIndex = d.getDay();
                 const dateStr = d.toISOString().split('T')[0];
                 const btn = document.createElement('button');
-                btn.className = 'date-btn flex-1 bg-zinc-900 border border-zinc-800 text-xs py-3 text-center';
-                btn.innerHTML = `<span class="block font-bold">${i===0?'Sot':i===1?'Nesër':'Pasnesër'}</span>`;
-                btn.onclick = () => {
-                    document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('bg-white', 'text-black'));
-                    btn.classList.add('bg-white', 'text-black');
-                    selectedDate = dateStr;
-                    loadSlots();
-                };
+                
+                if (dayIndex === 3) {
+                    btn.className = 'flex-1 bg-zinc-950 border border-zinc-900 text-zinc-600 text-xs py-3 cursor-not-allowed';
+                    btn.innerHTML = `<span class="block font-bold">Pushim</span>`;
+                    btn.disabled = true;
+                } else {
+                    btn.className = 'date-btn flex-1 bg-zinc-900 border border-zinc-800 text-xs py-3 transition-all';
+                    btn.innerHTML = `<span class="block font-bold">${i===0?'Sot':i===1?'Nesër':'Pasnesër'}</span>`;
+                    btn.onclick = () => {
+                        document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('bg-white', 'text-black'));
+                        btn.classList.add('bg-white', 'text-black');
+                        selectedDate = dateStr;
+                        loadSlots();
+                    };
+                }
                 container.appendChild(btn);
             }
         }
 
         async function loadSlots() {
             const container = document.getElementById('slotsContainer');
-            container.innerHTML = '<p class="text-xs text-zinc-500">Po ngarkohen oraret...</p>';
+            container.innerHTML = '<p class="text-xs text-zinc-500">Po ngarkohen...</p>';
             const allSlots = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00'];
-            
             try {
                 const res = await fetch(`/api/slots?date=${selectedDate}`);
                 const slots = await res.json();
                 renderSlots(slots.length > 0 ? slots : allSlots);
-            } catch (err) {
-                renderSlots(allSlots);
-            }
+            } catch (err) { renderSlots(allSlots); }
         }
 
         function renderSlots(slots) {
@@ -100,29 +104,25 @@
         }
 
         document.getElementById('submitBooking').onclick = async () => {
-            const name = document.getElementById('custName').value;
-            const phone = document.getElementById('custPhone').value;
             const res = await fetch('/api/bookings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ customer_name: name, phone, date: selectedDate, time: selectedTime })
+                body: JSON.stringify({ customer_name: document.getElementById('custName').value, phone: document.getElementById('custPhone').value, date: selectedDate, time: selectedTime })
             });
-            alert('Rezervuar me sukses!');
+            const data = await res.json();
+            alert(data.success ? 'U rezervua!' : data.error);
             window.location.reload();
         };
 
         document.getElementById('submitCancel').onclick = async () => {
-            const name = document.getElementById('cancelName').value;
-            const phone = document.getElementById('cancelPhone').value;
             const res = await fetch('/api/delete-booking', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ customer_name: name, phone })
+                body: JSON.stringify({ customer_name: document.getElementById('cancelName').value, phone: document.getElementById('cancelPhone').value })
             });
             const data = await res.json();
-            const status = document.getElementById('cancelStatus');
-            status.textContent = data.success ? "✅ Rezervimi u fshi!" : "❌ " + data.error;
-            status.classList.remove('hidden');
+            document.getElementById('cancelStatus').textContent = data.success ? "✅ U fshi!" : "❌ " + data.error;
+            document.getElementById('cancelStatus').classList.remove('hidden');
         };
     </script>
 </body>
