@@ -43,7 +43,11 @@
         async function genDates() {
             const cont = document.getElementById('dateButtonsContainer'); cont.innerHTML = '';
             for(let i=0; i<3; i++) {
-                let d = new Date(); d.setDate(d.getDate()+i); let str = d.toISOString().split('T')[0];
+                let d = new Date(); 
+                d.setDate(d.getDate()+i); 
+                // Zgjedhur: Formati lokal për të shmangur problemin e ditës së gabuar
+                let str = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                
                 let isWednesday = d.getDay() === 3;
                 let btn = document.createElement('button');
                 btn.className = `flex-1 p-3 text-xs ${isWednesday ? 'bg-zinc-950 text-zinc-700' : 'bg-zinc-900 border border-zinc-800'}`;
@@ -57,9 +61,11 @@
             const booked = await res.json();
             const cont = document.getElementById('slotsContainer'); 
             cont.innerHTML = '';
+            
             const tani = new Date();
             const oraAktuale = tani.getHours();
-            const ditaAktuale = tani.toISOString().split('T')[0];
+            // Data lokale për krahasim
+            const ditaAktuale = tani.getFullYear() + '-' + String(tani.getMonth() + 1).padStart(2, '0') + '-' + String(tani.getDate()).padStart(2, '0');
 
             ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'].forEach(t => {
                 let oraSlot = parseInt(t.split(':')[0]);
