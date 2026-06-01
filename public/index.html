@@ -3,147 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <title>Salloni i Berberit | Rezervime Online</title>
-    <meta name="description" content="Rezervo orarin tënd online në Sallonin e Berberit. Prerje profesionale flokësh dhe mjekre në kohë reale pa pritje në radhë.">
-    <meta name="robots" content="index, follow">
-
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-black text-white font-sans min-h-screen p-6 flex flex-col justify-between">
+    
+    <!-- HOME VIEW -->
     <div id="homeView" class="flex flex-col items-center text-center my-auto max-w-md mx-auto w-full">
         <div class="w-20 h-20 bg-zinc-900 border border-zinc-800 rounded-full flex items-center justify-center mb-6"><span class="text-2xl">✂️</span></div>
         <h2 class="text-3xl font-extrabold tracking-tight mb-2">Salloni i Berberit</h2>
-        <p class="text-zinc-400 text-sm mb-8">Rezervo orarin tënd në pak sekonda</p>
-        <button onclick="switchView('booking')" class="w-full bg-white text-black py-4 uppercase text-sm font-bold tracking-wider hover:bg-zinc-200">Rezervo Tani</button>
+        <button onclick="switchView('booking')" class="w-full bg-white text-black py-4 uppercase text-sm font-bold tracking-wider mb-3">Rezervo Tani</button>
+        <button onclick="switchView('cancel')" class="w-full bg-zinc-900 text-zinc-400 py-4 uppercase text-sm font-bold tracking-wider hover:text-white">Anulo Rezervimin</button>
     </div>
 
+    <!-- BOOKING VIEW -->
     <div id="bookingView" class="hidden w-full max-w-md mx-auto my-auto">
-        <button onclick="switchView('home')" class="text-xs text-zinc-400 hover:text-white uppercase tracking-wider mb-6">← Kthehu</button>
+        <button onclick="switchView('home')" class="text-xs text-zinc-400 mb-6">← Kthehu</button>
         <h2 class="text-2xl font-bold mb-6 uppercase tracking-wide">Zgjidh Orarin</h2>
-        
-        <label class="block text-xs uppercase tracking-wider text-zinc-400 mb-2">Zgjidh Datën (Deri në 3 ditë)</label>
         <div id="dateButtonsContainer" class="flex gap-2 mb-6"></div>
-
-        <label class="block text-xs uppercase tracking-wider text-zinc-400 mb-2">Oraret e Lira</label>
         <div id="slotsContainer" class="grid grid-cols-3 gap-2 mb-8"></div>
-
         <div id="bookingForm" class="hidden border-t border-zinc-900 pt-6">
-            <input type="text" id="custName" placeholder="Emri Juaj" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-3 text-white focus:outline-none">
-            <input type="tel" id="custPhone" placeholder="Numri i Telefonit" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-6 text-white focus:outline-none">
-            <button id="submitBooking" class="w-full bg-white text-black py-4 uppercase text-sm font-bold tracking-wider hover:bg-zinc-200">Konfirmo Rezervimin</button>
+            <input type="text" id="custName" placeholder="Emri Juaj" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-3 text-white">
+            <input type="tel" id="custPhone" placeholder="Numri i Telefonit" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-6 text-white">
+            <button id="submitBooking" class="w-full bg-white text-black py-4 uppercase text-sm font-bold">Konfirmo Rezervimin</button>
         </div>
     </div>
 
+    <!-- CANCEL VIEW -->
+    <div id="cancelView" class="hidden w-full max-w-md mx-auto my-auto">
+        <button onclick="switchView('home')" class="text-xs text-zinc-400 mb-6">← Kthehu</button>
+        <h2 class="text-2xl font-bold mb-6 uppercase tracking-wide text-red-500">Anulo Rezervimin</h2>
+        <input type="text" id="cancelName" placeholder="Emri i përdorur" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-3 text-white">
+        <input type="tel" id="cancelPhone" placeholder="Numri i Telefonit" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-6 text-white">
+        <button id="submitCancel" class="w-full bg-red-600 text-white py-4 uppercase text-sm font-bold hover:bg-red-700">Fshi Rezervimin</button>
+        <p id="cancelStatus" class="mt-4 text-center hidden p-3 bg-green-900 text-green-200 border border-green-700"></p>
+    </div>
+
     <script>
-        let selectedDate = null;
-        let selectedTime = null;
-
         function switchView(view) {
-            if(view === 'booking') {
-                document.getElementById('homeView').classList.add('hidden');
-                document.getElementById('bookingView').classList.remove('hidden');
-                generateDateButtons();
-            } else {
-                document.getElementById('bookingView').classList.add('hidden');
-                document.getElementById('homeView').classList.remove('hidden');
-            }
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('bookingView').classList.add('hidden');
+            document.getElementById('cancelView').classList.add('hidden');
+            document.getElementById(view + 'View').classList.remove('hidden');
+            if(view === 'booking') generateDateButtons();
         }
 
-        function generateDateButtons() {
-            const container = document.getElementById('dateButtonsContainer');
-            container.innerHTML = '';
-            document.getElementById('slotsContainer').innerHTML = '<p class="text-xs text-zinc-500 col-span-3">Zgjidh një nga datat më lart...</p>';
-            document.getElementById('bookingForm').classList.add('hidden');
-            
-            const ditetEJaves = ['E Diel', 'E Hënë', 'E Martë', 'E Mërkurë', 'E Enjte', 'E Premte', 'E Shtunë'];
-            
-            for (let i = 0; i < 3; i++) {
-                let d = new Date();
-                d.setDate(d.getDate() + i);
-                
-                const dayIndex = d.getDay();
-                const dateStr = d.toISOString().split('T')[0];
-                
-                let titulli = i === 0 ? "Sot" : i === 1 ? "Nesër" : ditetEJaves[dayIndex];
-                const btn = document.createElement('button');
-                
-                if (dayIndex === 3) { // E Mërkurë = Pushim
-                    btn.className = 'flex-1 bg-zinc-950 border border-zinc-900 text-zinc-600 text-xs py-3 text-center cursor-not-allowed';
-                    btn.innerHTML = `<span class="block font-bold text-zinc-700">${titulli}</span><span class="text-[10px] font-bold uppercase text-red-500/70">Pushim</span>`;
-                    btn.disabled = true;
-                } else {
-                    btn.className = 'date-btn flex-1 bg-zinc-900 border border-zinc-800 text-xs py-3 text-center transition-all hover:border-zinc-500';
-                    btn.innerHTML = `<span class="block font-bold">${titulli}</span><span class="text-[10px] text-zinc-500">${d.getDate()}/${d.getMonth() + 1}</span>`;
-                    btn.onclick = () => {
-                        document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('bg-white', 'text-black'));
-                        btn.classList.add('bg-white', 'text-black');
-                        selectedDate = dateStr;
-                        loadSlots();
-                    };
-                }
-                container.appendChild(btn);
-            }
-        }
+        // ... (Këtu mban kodin ekzistues të generateDateButtons, loadSlots, renderSlots) ...
 
-        async function loadSlots() {
-            selectedTime = null;
-            document.getElementById('bookingForm').classList.add('hidden');
-            const container = document.getElementById('slotsContainer');
-            container.innerHTML = '<p class="text-xs text-zinc-500 col-span-3">Duke kërkuar oraret...</p>';
-            
-            try {
-                const res = await fetch(`/api/slots?date=${selectedDate}`);
-                if (!res.ok) throw new Error();
-                const slots = await res.json();
-                renderSlots(slots);
-            } catch (err) {
-                const oraretFalse = ['09:00', '10:00', '11:00', '14:00', '15:00', '17:00', '18:00'];
-                renderSlots(oraretFalse);
-            }
-        }
+        // SHTESA PËR ANULIMIN
+        document.getElementById('submitCancel').onclick = async () => {
+            const name = document.getElementById('cancelName').value;
+            const phone = document.getElementById('cancelPhone').value;
+            const statusDiv = document.getElementById('cancelStatus');
 
-        function renderSlots(slots) {
-            const container = document.getElementById('slotsContainer');
-            container.innerHTML = '';
-            if(slots.length === 0) {
-                container.innerHTML = '<p class="text-xs text-red-400 col-span-3">Nuk ka orare të lira.</p>';
-                return;
-            }
-            slots.forEach(time => {
-                const btn = document.createElement('button');
-                btn.className = 'bg-zinc-900 border border-zinc-800 text-sm py-3 transition-all hover:border-zinc-500';
-                btn.textContent = time;
-                btn.onclick = () => {
-                    document.querySelectorAll('#slotsContainer button').forEach(b => b.classList.remove('bg-white', 'text-black'));
-                    btn.classList.add('bg-white', 'text-black');
-                    selectedTime = time;
-                    document.getElementById('bookingForm').classList.remove('hidden');
-                };
-                container.appendChild(btn);
+            const res = await fetch('/api/delete-booking', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ customer_name: name, phone })
             });
-        }
 
-        document.getElementById('submitBooking').onclick = async () => {
-            const name = document.getElementById('custName').value;
-            const phone = document.getElementById('custPhone').value;
-            if(!name || !phone) return alert('Plotësoni të dhënat!');
-
-            try {
-                const res = await fetch('/api/bookings', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ customer_name: name, phone, date: selectedDate, time: selectedTime })
-                });
-                const data = await res.json();
-                if(data.success) {
-                    alert('U rezervua me sukses!');
-                    window.location.reload();
-                } else { alert(data.error || 'Gabim!'); }
-            } catch (err) {
-                alert('Gabim gjatë dërgimit në server.');
+            const data = await res.json();
+            statusDiv.classList.remove('hidden');
+            if(data.success) {
+                statusDiv.textContent = "✅ Rezervimi u fshi me sukses!";
+                statusDiv.className = "mt-4 text-center p-3 bg-green-900 text-green-200 border border-green-700";
+            } else {
+                statusDiv.textContent = "❌ " + (data.error || "Gabim!");
+                statusDiv.className = "mt-4 text-center p-3 bg-red-900 text-red-200 border border-red-700";
             }
         };
+
+        // Mbaj kodin tënd ekzistues për submitBooking këtu poshtë...
     </script>
 </body>
 </html>
