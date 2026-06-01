@@ -42,7 +42,6 @@ async function initDB() {
 }
 initDB();
 
-// Konfigurimi i Email-it (Shto "App Password" në .env)
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
@@ -50,21 +49,38 @@ const transporter = nodemailer.createTransport({
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
+// API për Rezervim
 app.post('/api/bookings', async (req, res) => {
   const { customer_name, phone, date, time } = req.body;
   try {
     await pool.query("INSERT INTO bookings (customer_name, phone, date, time) VALUES ($1, $2, $3, $4)", [customer_name, phone, date, time]);
-    // Dërgimi i email-it pa bllokuar serverin
     if(process.env.EMAIL_USER) {
-        transporter.sendMail({ from: process.env.EMAIL_USER, to: 'info@berberi.com', subject: 'Rezervim i ri', text: customer_name }, (err) => {
-            if (err) console.log("Email error:", err.message);
-        });
+        transporter.sendMail({ from: process.env.EMAIL_USER, to: 'info@berberi.com', subject: 'Rezervim i ri', text: `Klienti: ${customer_name}, Tel: ${phone}, Data: ${date}, Ora: ${time}` });
     }
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: 'Gabim gjatë rezervimit' }); }
 });
 
-// Pjesa tjetër e API-ve...
+// API për ANULIM (SHTESA E RE)
+app.post('/api/delete-booking', async (req, res) => {
+    const { customer_name, phone } = req.body;
+    try {
+        const result = await pool.query("DELETE FROM bookings WHERE customer_name = $1 AND phone = $2 RETURNING *", [customer_name, phone]);
+        
+        if (result.rowCount === 0) return res.status(400).json({ error: 'Nuk u gjet asnjë rezervim me këto të dhëna.' });
+
+        if(process.env.EMAIL_USER) {
+            transporter.sendMail({
+                from: process.env.EMAIL_USER,
+                to: 'info@berberi.com',
+                subject: '❌ ANULIM REZERVIMI',
+                text: `Klienti ${customer_name} me numër ${phone} sapo anuloi rezervimin e tij.`
+            });
+        }
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: 'Gabim në server.' }); }
+});
+
 app.get('/api/admin/bookings', async (req, res) => {
   const result = await pool.query("SELECT * FROM bookings WHERE date = $1 ORDER BY time ASC", [req.query.date]);
   res.json(result.rows);
