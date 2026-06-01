@@ -1,35 +1,42 @@
 <!DOCTYPE html>
 <html lang="sq">
-<head><meta charset="UTF-8"><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-black text-white p-6">
-    <div id="homeView" class="max-w-md mx-auto text-center mt-20">
-        <h2 class="text-3xl font-bold mb-10">Salloni i Berberit</h2>
-        <button onclick="show('bookingView')" class="w-full bg-white text-black py-4 font-bold mb-4">REZERVO TANI</button>
-        <button onclick="show('cancelView')" class="w-full bg-zinc-900 py-4 font-bold">ANULO REZERVIMIN</button>
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black text-white font-sans min-h-screen flex flex-col items-center justify-center p-6">
+    <div id="homeView" class="text-center max-w-xs w-full">
+        <div class="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-6"><span class="text-3xl">✂️</span></div>
+        <h2 class="text-2xl font-bold mb-2">Salloni i Berberit</h2>
+        <p class="text-zinc-400 text-sm mb-8">Rezervo orarin tënd në pak sekonda.</p>
+        <button onclick="show('bookingView')" class="w-full bg-white text-black py-4 font-bold mb-3 uppercase tracking-wider text-sm">Rezervo Tani</button>
+        <button onclick="show('cancelView')" class="w-full bg-zinc-900 text-zinc-400 py-4 font-bold uppercase tracking-wider text-sm">Anulo Rezervimin</button>
     </div>
 
-    <div id="bookingView" class="hidden max-w-md mx-auto">
-        <button onclick="show('homeView')" class="text-xs text-zinc-500 mb-4">← Kthehu</button>
+    <div id="bookingView" class="hidden w-full max-w-xs">
+        <button onclick="show('homeView')" class="text-xs text-zinc-500 mb-6 underline">← Kthehu</button>
         <div id="dateButtonsContainer" class="flex gap-2 mb-6"></div>
         <div id="slotsContainer" class="grid grid-cols-3 gap-2 mb-6"></div>
         <div id="bookingForm" class="hidden">
-            <input type="text" id="custName" placeholder="Emri" class="w-full bg-zinc-900 p-4 mb-2">
-            <input type="tel" id="custPhone" placeholder="Telefoni" class="w-full bg-zinc-900 p-4 mb-4">
-            <button onclick="submitBooking()" class="w-full bg-white text-black py-4 font-bold">KONFIRMO</button>
+            <input type="text" id="custName" placeholder="Emri Juaj" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-2">
+            <input type="tel" id="custPhone" placeholder="Numri i Telefonit" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-4">
+            <button onclick="submitBooking()" class="w-full bg-white text-black py-4 font-bold uppercase text-sm">Konfirmo Rezervimin</button>
         </div>
     </div>
 
-    <div id="cancelView" class="hidden max-w-md mx-auto">
-        <button onclick="show('homeView')" class="text-xs text-zinc-500 mb-4">← Kthehu</button>
-        <input type="text" id="delName" placeholder="Emri" class="w-full bg-zinc-900 p-4 mb-2">
-        <input type="tel" id="delPhone" placeholder="Telefoni" class="w-full bg-zinc-900 p-4 mb-4">
-        <button onclick="cancelBooking()" class="w-full bg-red-600 py-4 font-bold">FSHI REZERVIMIN</button>
+    <div id="cancelView" class="hidden w-full max-w-xs">
+        <button onclick="show('homeView')" class="text-xs text-zinc-500 mb-6 underline">← Kthehu</button>
+        <input type="text" id="delName" placeholder="Emri i përdorur" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-2">
+        <input type="tel" id="delPhone" placeholder="Numri i Telefonit" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-4">
+        <button onclick="cancelBooking()" class="w-full bg-red-600 text-white py-4 font-bold uppercase text-sm">Fshi Rezervimin</button>
     </div>
 
     <script>
         let sDate, sTime;
         function show(id) {
-            ['homeView', 'bookingView', 'cancelView'].forEach(v => document.getElementById(v).classList.add('hidden'));
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('bookingView').classList.add('hidden');
+            document.getElementById('cancelView').classList.add('hidden');
             document.getElementById(id).classList.remove('hidden');
             if(id === 'bookingView') genDates();
         }
@@ -37,7 +44,7 @@
             const cont = document.getElementById('dateButtonsContainer'); cont.innerHTML = '';
             for(let i=0; i<3; i++) {
                 let d = new Date(); d.setDate(d.getDate()+i); let str = d.toISOString().split('T')[0];
-                let btn = document.createElement('button'); btn.className = 'flex-1 bg-zinc-900 p-3 text-xs';
+                let btn = document.createElement('button'); btn.className = 'flex-1 bg-zinc-900 border border-zinc-800 p-3 text-xs';
                 btn.textContent = i===0?'Sot':i===1?'Nesër':'Pasnesër';
                 btn.onclick = () => { sDate = str; loadSlots(); }; cont.appendChild(btn);
             }
@@ -48,7 +55,7 @@
             const cont = document.getElementById('slotsContainer'); cont.innerHTML = '';
             ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'].forEach(t => {
                 let isBooked = booked.includes(t);
-                let btn = document.createElement('button'); btn.className = isBooked ? 'bg-zinc-950 p-2 text-xs' : 'bg-zinc-900 p-2 text-xs';
+                let btn = document.createElement('button'); btn.className = isBooked ? 'bg-zinc-950 border border-zinc-900 p-2 text-xs text-zinc-600' : 'bg-zinc-900 border border-zinc-800 p-2 text-xs';
                 btn.textContent = isBooked ? t + ' (Zënë)' : t;
                 btn.disabled = isBooked;
                 if(!isBooked) btn.onclick = () => { sTime = t; document.getElementById('bookingForm').classList.remove('hidden'); };
