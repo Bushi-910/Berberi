@@ -1,5 +1,6 @@
 import express from 'express';
 import pg from 'pg';
+import nodemailer from 'nodemailer';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -10,6 +11,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
 
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+});
+
 app.get('/api/slots', async (req, res) => {
     try {
         const booked = await pool.query("SELECT time FROM bookings WHERE date = $1", [req.query.date]);
@@ -19,10 +25,16 @@ app.get('/api/slots', async (req, res) => {
 
 app.post('/api/bookings', async (req, res) => {
     const { customer_name, phone, date, time } = req.body;
-    const check = await pool.query("SELECT * FROM bookings WHERE date = $1 AND phone = $2", [date, phone]);
-    if (check.rows.length > 0) return res.status(400).json({ error: 'Ky numër ka një rezervim sot!' });
-    await pool.query("INSERT INTO bookings (customer_name, phone, date, time) VALUES ($1, $2, $3, $4)", [customer_name, phone, date, time]);
-    res.json({ success: true });
+    try {
+        await pool.query("INSERT INTO bookings (customer_name, phone, date, time) VALUES ($1, $2, $3, $4)", [customer_name, phone, date, time]);
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: process.env.EMAIL_USER,
+            subject: 'Rezervim i Ri - Salloni i Berberit',
+            text: `Klienti: ${customer_name}\nTelefoni: ${phone}\nData: ${date}\nOra: ${time}`
+        });
+        res.json({ success: true });
+    } catch (err) { res.status(400).json({ error: 'Gabim' }); }
 });
 
 app.post('/api/delete-booking', async (req, res) => {
