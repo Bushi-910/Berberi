@@ -1,28 +1,28 @@
-\<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="sq">
 <head><meta charset="UTF-8"><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-black text-white p-6">
-    <div id="bookingView" class="max-w-md mx-auto">
+<body class="bg-black text-white p-6 font-sans">
+    <div class="max-w-md mx-auto">
         <h2 class="text-2xl font-bold mb-6">Zgjidh Orarin</h2>
         <div id="dateButtonsContainer" class="flex gap-2 mb-6"></div>
         <div id="slotsContainer" class="grid grid-cols-3 gap-2 mb-8"></div>
         <div id="bookingForm" class="hidden pt-6 border-t border-zinc-900">
-            <input type="text" id="custName" placeholder="Emri" class="w-full bg-zinc-900 p-4 mb-3">
-            <input type="tel" id="custPhone" placeholder="Telefoni" class="w-full bg-zinc-900 p-4 mb-6">
-            <button id="submitBooking" class="w-full bg-white text-black py-4 font-bold">Konfirmo</button>
+            <input type="text" id="custName" placeholder="Emri" class="w-full bg-zinc-900 p-4 mb-3 border border-zinc-700">
+            <input type="tel" id="custPhone" placeholder="Telefoni" class="w-full bg-zinc-900 p-4 mb-6 border border-zinc-700">
+            <button id="submitBooking" class="w-full bg-white text-black py-4 font-bold uppercase text-sm">Konfirmo</button>
         </div>
     </div>
     <script>
         let selectedDate = null, selectedTime = null;
-        async function generateDateButtons() {
+        function genDates() {
             const container = document.getElementById('dateButtonsContainer');
             for(let i=0; i<3; i++) {
                 let d = new Date(); d.setDate(d.getDate()+i);
                 let dateStr = d.toISOString().split('T')[0];
                 let btn = document.createElement('button');
-                btn.className = 'flex-1 bg-zinc-900 py-3 text-xs';
+                btn.className = 'flex-1 bg-zinc-900 py-3 text-xs border border-zinc-800';
                 btn.textContent = i===0?'Sot':i===1?'Nesër':'Pasnesër';
-                if(d.getDay()===3) { btn.disabled=true; btn.textContent='Pushim'; }
+                if(d.getDay()===3) { btn.disabled=true; btn.style.opacity="0.3"; btn.textContent='Pushim'; }
                 else btn.onclick = () => { selectedDate = dateStr; loadSlots(); };
                 container.appendChild(btn);
             }
@@ -35,7 +35,7 @@
             ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'].forEach(time => {
                 let isBooked = booked.includes(time);
                 let btn = document.createElement('button');
-                btn.className = isBooked ? 'bg-zinc-950 text-zinc-600 p-2 text-xs' : 'bg-zinc-900 p-2 text-xs';
+                btn.className = isBooked ? 'bg-zinc-950 text-zinc-600 p-2 text-xs border border-zinc-900' : 'bg-zinc-900 p-2 text-xs border border-zinc-800';
                 btn.textContent = isBooked ? time + ' (Zënë)' : time;
                 btn.disabled = isBooked;
                 if(!isBooked) btn.onclick = () => { selectedTime = time; document.getElementById('bookingForm').classList.remove('hidden'); };
@@ -48,7 +48,7 @@
             alert(data.success ? 'U rezervua!' : data.error);
             window.location.reload();
         };
-        generateDateButtons();
+        genDates();
     </script>
 </body>
 </html>
