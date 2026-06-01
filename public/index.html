@@ -1,54 +1,68 @@
 <!DOCTYPE html>
 <html lang="sq">
 <head><meta charset="UTF-8"><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-black text-white p-6 font-sans">
-    <div class="max-w-md mx-auto">
-        <h2 class="text-2xl font-bold mb-6">Zgjidh Orarin</h2>
+<body class="bg-black text-white p-6">
+    <div id="homeView" class="max-w-md mx-auto text-center mt-20">
+        <h2 class="text-3xl font-bold mb-10">Salloni i Berberit</h2>
+        <button onclick="show('bookingView')" class="w-full bg-white text-black py-4 font-bold mb-4">REZERVO TANI</button>
+        <button onclick="show('cancelView')" class="w-full bg-zinc-900 py-4 font-bold">ANULO REZERVIMIN</button>
+    </div>
+
+    <div id="bookingView" class="hidden max-w-md mx-auto">
+        <button onclick="show('homeView')" class="text-xs text-zinc-500 mb-4">← Kthehu</button>
         <div id="dateButtonsContainer" class="flex gap-2 mb-6"></div>
-        <div id="slotsContainer" class="grid grid-cols-3 gap-2 mb-8"></div>
-        <div id="bookingForm" class="hidden pt-6 border-t border-zinc-900">
-            <input type="text" id="custName" placeholder="Emri" class="w-full bg-zinc-900 p-4 mb-3 border border-zinc-700">
-            <input type="tel" id="custPhone" placeholder="Telefoni" class="w-full bg-zinc-900 p-4 mb-6 border border-zinc-700">
-            <button id="submitBooking" class="w-full bg-white text-black py-4 font-bold uppercase text-sm">Konfirmo</button>
+        <div id="slotsContainer" class="grid grid-cols-3 gap-2 mb-6"></div>
+        <div id="bookingForm" class="hidden">
+            <input type="text" id="custName" placeholder="Emri" class="w-full bg-zinc-900 p-4 mb-2">
+            <input type="tel" id="custPhone" placeholder="Telefoni" class="w-full bg-zinc-900 p-4 mb-4">
+            <button onclick="submitBooking()" class="w-full bg-white text-black py-4 font-bold">KONFIRMO</button>
         </div>
     </div>
+
+    <div id="cancelView" class="hidden max-w-md mx-auto">
+        <button onclick="show('homeView')" class="text-xs text-zinc-500 mb-4">← Kthehu</button>
+        <input type="text" id="delName" placeholder="Emri" class="w-full bg-zinc-900 p-4 mb-2">
+        <input type="tel" id="delPhone" placeholder="Telefoni" class="w-full bg-zinc-900 p-4 mb-4">
+        <button onclick="cancelBooking()" class="w-full bg-red-600 py-4 font-bold">FSHI REZERVIMIN</button>
+    </div>
+
     <script>
-        let selectedDate = null, selectedTime = null;
-        function genDates() {
-            const container = document.getElementById('dateButtonsContainer');
+        let sDate, sTime;
+        function show(id) {
+            ['homeView', 'bookingView', 'cancelView'].forEach(v => document.getElementById(v).classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            if(id === 'bookingView') genDates();
+        }
+        async function genDates() {
+            const cont = document.getElementById('dateButtonsContainer'); cont.innerHTML = '';
             for(let i=0; i<3; i++) {
-                let d = new Date(); d.setDate(d.getDate()+i);
-                let dateStr = d.toISOString().split('T')[0];
-                let btn = document.createElement('button');
-                btn.className = 'flex-1 bg-zinc-900 py-3 text-xs border border-zinc-800';
+                let d = new Date(); d.setDate(d.getDate()+i); let str = d.toISOString().split('T')[0];
+                let btn = document.createElement('button'); btn.className = 'flex-1 bg-zinc-900 p-3 text-xs';
                 btn.textContent = i===0?'Sot':i===1?'Nesër':'Pasnesër';
-                if(d.getDay()===3) { btn.disabled=true; btn.style.opacity="0.3"; btn.textContent='Pushim'; }
-                else btn.onclick = () => { selectedDate = dateStr; loadSlots(); };
-                container.appendChild(btn);
+                btn.onclick = () => { sDate = str; loadSlots(); }; cont.appendChild(btn);
             }
         }
         async function loadSlots() {
-            const res = await fetch(`/api/slots?date=${selectedDate}`);
+            const res = await fetch(`/api/slots?date=${sDate}`);
             const booked = await res.json();
-            const container = document.getElementById('slotsContainer');
-            container.innerHTML = '';
-            ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'].forEach(time => {
-                let isBooked = booked.includes(time);
-                let btn = document.createElement('button');
-                btn.className = isBooked ? 'bg-zinc-950 text-zinc-600 p-2 text-xs border border-zinc-900' : 'bg-zinc-900 p-2 text-xs border border-zinc-800';
-                btn.textContent = isBooked ? time + ' (Zënë)' : time;
+            const cont = document.getElementById('slotsContainer'); cont.innerHTML = '';
+            ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'].forEach(t => {
+                let isBooked = booked.includes(t);
+                let btn = document.createElement('button'); btn.className = isBooked ? 'bg-zinc-950 p-2 text-xs' : 'bg-zinc-900 p-2 text-xs';
+                btn.textContent = isBooked ? t + ' (Zënë)' : t;
                 btn.disabled = isBooked;
-                if(!isBooked) btn.onclick = () => { selectedTime = time; document.getElementById('bookingForm').classList.remove('hidden'); };
-                container.appendChild(btn);
+                if(!isBooked) btn.onclick = () => { sTime = t; document.getElementById('bookingForm').classList.remove('hidden'); };
+                cont.appendChild(btn);
             });
         }
-        document.getElementById('submitBooking').onclick = async () => {
-            const res = await fetch('/api/bookings', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ customer_name: document.getElementById('custName').value, phone: document.getElementById('custPhone').value, date: selectedDate, time: selectedTime }) });
-            const data = await res.json();
-            alert(data.success ? 'U rezervua!' : data.error);
-            window.location.reload();
-        };
-        genDates();
+        async function submitBooking() {
+            const res = await fetch('/api/bookings', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ customer_name: document.getElementById('custName').value, phone: document.getElementById('custPhone').value, date: sDate, time: sTime }) });
+            alert((await res.json()).success ? 'U rezervua!' : 'Gabim!'); location.reload();
+        }
+        async function cancelBooking() {
+            const res = await fetch('/api/delete-booking', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ customer_name: document.getElementById('delName').value, phone: document.getElementById('delPhone').value }) });
+            alert((await res.json()).success ? 'U fshi!' : 'Gabim!'); location.reload();
+        }
     </script>
 </body>
 </html>
