@@ -67,14 +67,11 @@
         }
         async function submitBooking() {
             const res = await fetch('/api/bookings', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ customer_name: document.getElementById('custName').value, phone: document.getElementById('custPhone').value, date: sDate, time: sTime }) });
-            const data = await res.json();
-            alert(data.success ? 'U rezervua!' : data.error);
-            location.reload();
+            alert((await res.json()).success ? 'U rezervua!' : 'Gabim!'); location.reload();
         }
         async function cancelBooking() {
             const res = await fetch('/api/delete-booking', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ customer_name: document.getElementById('delName').value, phone: document.getElementById('delPhone').value }) });
-            alert((await res.json()).success ? 'U fshi!' : 'Gabim!');
-            location.reload();
+            alert((await res.json()).success ? 'U fshi!' : 'Gabim!'); location.reload();
         }
     </script>
 </body>
