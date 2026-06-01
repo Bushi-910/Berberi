@@ -1,27 +1,18 @@
 <!DOCTYPE html>
-<html>
-<body style="background:black; color:white; font-family:sans-serif; padding:20px;">
-    <h2 class="text-xl font-bold mb-4">Rezervimet</h2>
-    <table id="adminTable" style="width:100%; border-collapse:collapse; border:1px solid #333;">
-        <tr style="text-align:left; background:#111;"><th>Klienti</th><th>Telefoni</th><th>Dita</th><th>Ora</th></tr>
+<html lang="sq">
+<body class="bg-black text-white p-6 font-sans">
+    <h2 class="text-xl mb-4">Rezervimet</h2>
+    <table id="tbl" class="w-full text-left border-collapse">
+        <tr><th>Klienti</th><th>Telefoni</th><th>Dita</th><th>Ora</th></tr>
     </table>
     <script>
-        async function loadData() {
-            const res = await fetch('/api/admin/all');
-            const data = await res.json();
-            const table = document.getElementById('adminTable');
-            const dite = ["E Diel", "E Hënë", "E Martë", "E Mërkurë", "E Enjte", "E Premte", "E Shtunë"];
+        fetch('/api/admin/all').then(r => r.json()).then(data => {
+            const tbl = document.getElementById('tbl');
+            const d = ["Diel", "Hënë", "Martë", "Mërkurë", "Enjte", "Premte", "Shtunë"];
             data.forEach(b => {
-                let dita = dite[new Date(b.date).getDay()];
-                table.innerHTML += `<tr style="border-bottom:1px solid #222;">
-                    <td style="padding:10px;">${b.customer_name}</td>
-                    <td>${b.phone}</td>
-                    <td>${dita}</td>
-                    <td>${b.time}</td>
-                </tr>`;
+                tbl.innerHTML += `<tr class="border-b border-zinc-800"><td>${b.customer_name}</td><td>${b.phone}</td><td>${d[new Date(b.date).getDay()]}</td><td>${b.time}</td></tr>`;
             });
-        }
-        loadData();
+        });
     </script>
 </body>
 </html>
