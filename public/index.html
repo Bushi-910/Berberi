@@ -2,33 +2,33 @@
 <html lang="sq">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-black text-white font-sans min-h-screen flex flex-col items-center justify-center p-6">
-    <div id="homeView" class="text-center max-w-xs w-full">
+<body class="bg-black text-white font-sans min-h-screen flex flex-col items-center justify-center p-4">
+    <div id="homeView" class="text-center w-full max-w-sm">
         <div class="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-6"><span class="text-3xl">✂️</span></div>
         <h2 class="text-2xl font-bold mb-2">Salloni i Berberit</h2>
-        <p class="text-zinc-400 text-sm mb-8">Rezervo orarin tënd në pak sekonda.</p>
-        <button onclick="show('bookingView')" class="w-full bg-white text-black py-4 font-bold mb-3 uppercase tracking-wider text-sm">Rezervo Tani</button>
-        <button onclick="show('cancelView')" class="w-full bg-zinc-900 text-zinc-400 py-4 font-bold uppercase tracking-wider text-sm">Anulo Rezervimin</button>
+        <button onclick="show('bookingView')" class="w-full bg-white text-black py-4 font-bold mb-3 uppercase text-sm">Rezervo Tani</button>
+        <button onclick="show('cancelView')" class="w-full bg-zinc-900 text-zinc-400 py-4 font-bold uppercase text-sm">Anulo Rezervimin</button>
     </div>
 
-    <div id="bookingView" class="hidden w-full max-w-xs">
+    <div id="bookingView" class="hidden w-full max-w-sm">
         <button onclick="show('homeView')" class="text-xs text-zinc-500 mb-6 underline">← Kthehu</button>
         <div id="dateButtonsContainer" class="flex gap-2 mb-6"></div>
         <div id="slotsContainer" class="grid grid-cols-3 gap-2 mb-6"></div>
         <div id="bookingForm" class="hidden">
-            <input type="text" id="custName" placeholder="Emri Juaj" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-2">
-            <input type="tel" id="custPhone" placeholder="Numri i Telefonit" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-4">
-            <button onclick="submitBooking()" class="w-full bg-white text-black py-4 font-bold uppercase text-sm">Konfirmo Rezervimin</button>
+            <input type="text" id="custName" placeholder="Emri" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-2 text-sm">
+            <input type="tel" id="custPhone" placeholder="Telefoni" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-4 text-sm">
+            <button onclick="submitBooking()" class="w-full bg-white text-black py-4 font-bold uppercase text-sm">Konfirmo</button>
         </div>
     </div>
 
-    <div id="cancelView" class="hidden w-full max-w-xs">
+    <div id="cancelView" class="hidden w-full max-w-sm">
         <button onclick="show('homeView')" class="text-xs text-zinc-500 mb-6 underline">← Kthehu</button>
-        <input type="text" id="delName" placeholder="Emri i përdorur" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-2">
-        <input type="tel" id="delPhone" placeholder="Numri i Telefonit" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-4">
-        <button onclick="cancelBooking()" class="w-full bg-red-600 text-white py-4 font-bold uppercase text-sm">Fshi Rezervimin</button>
+        <input type="text" id="delName" placeholder="Emri" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-2 text-sm">
+        <input type="tel" id="delPhone" placeholder="Telefoni" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-4 text-sm">
+        <button onclick="cancelBooking()" class="w-full bg-red-600 py-4 font-bold uppercase text-sm">Fshi</button>
     </div>
 
     <script>
@@ -44,9 +44,12 @@
             const cont = document.getElementById('dateButtonsContainer'); cont.innerHTML = '';
             for(let i=0; i<3; i++) {
                 let d = new Date(); d.setDate(d.getDate()+i); let str = d.toISOString().split('T')[0];
-                let btn = document.createElement('button'); btn.className = 'flex-1 bg-zinc-900 border border-zinc-800 p-3 text-xs';
-                btn.textContent = i===0?'Sot':i===1?'Nesër':'Pasnesër';
-                btn.onclick = () => { sDate = str; loadSlots(); }; cont.appendChild(btn);
+                let isWednesday = d.getDay() === 3;
+                let btn = document.createElement('button');
+                btn.className = `flex-1 p-3 text-xs ${isWednesday ? 'bg-zinc-950 text-zinc-700' : 'bg-zinc-900 border border-zinc-800'}`;
+                btn.textContent = isWednesday ? 'Pushim' : (i===0?'Sot':i===1?'Nesër':'Pasnesër');
+                if(!isWednesday) btn.onclick = () => { sDate = str; loadSlots(); };
+                cont.appendChild(btn);
             }
         }
         async function loadSlots() {
@@ -64,11 +67,14 @@
         }
         async function submitBooking() {
             const res = await fetch('/api/bookings', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ customer_name: document.getElementById('custName').value, phone: document.getElementById('custPhone').value, date: sDate, time: sTime }) });
-            alert((await res.json()).success ? 'U rezervua!' : 'Gabim!'); location.reload();
+            const data = await res.json();
+            alert(data.success ? 'U rezervua!' : data.error);
+            location.reload();
         }
         async function cancelBooking() {
             const res = await fetch('/api/delete-booking', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ customer_name: document.getElementById('delName').value, phone: document.getElementById('delPhone').value }) });
-            alert((await res.json()).success ? 'U fshi!' : 'Gabim!'); location.reload();
+            alert((await res.json()).success ? 'U fshi!' : 'Gabim!');
+            location.reload();
         }
     </script>
 </body>
