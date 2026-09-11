@@ -9,8 +9,9 @@
     <div id="homeView" class="text-center w-full max-w-sm">
         <div class="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-6"><span class="text-3xl">✂️</span></div>
         <h2 class="text-2xl font-bold mb-2">Salloni i Berberit</h2>
-        <button onclick="show('bookingView')" class="w-full bg-white text-black py-4 font-bold mb-3 uppercase text-sm">Rezervo Tani</button>
-        <button onclick="show('cancelView')" class="w-full bg-zinc-900 text-zinc-400 py-4 font-bold uppercase text-sm">Anulo Rezervimin</button>
+        <!-- Shtohet active:scale-95 dhe active:bg-zinc-200 për efektin e klikimit -->
+        <button onclick="show('bookingView')" class="w-full bg-white text-black py-4 font-bold mb-3 uppercase text-sm transition transform active:scale-95 active:bg-zinc-200">Rezervo Tani</button>
+        <button onclick="show('cancelView')" class="w-full bg-zinc-900 text-zinc-400 py-4 font-bold uppercase text-sm transition transform active:scale-95 active:bg-zinc-800 active:text-white">Anulo Rezervimin</button>
     </div>
 
     <div id="bookingView" class="hidden w-full max-w-sm">
@@ -18,17 +19,17 @@
         <div id="dateButtonsContainer" class="flex gap-2 mb-6"></div>
         <div id="slotsContainer" class="grid grid-cols-3 gap-2 mb-6"></div>
         <div id="bookingForm" class="hidden">
-            <input type="text" id="custName" placeholder="Emri" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-2 text-sm">
-            <input type="tel" id="custPhone" placeholder="Telefoni" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-4 text-sm">
-            <button onclick="submitBooking()" class="w-full bg-white text-black py-4 font-bold uppercase text-sm">Konfirmo</button>
+            <input type="text" id="custName" placeholder="Emri" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-2 text-sm focus:outline-none focus:border-white">
+            <input type="tel" id="custPhone" placeholder="Telefoni" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-4 text-sm focus:outline-none focus:border-white">
+            <button onclick="submitBooking()" class="w-full bg-white text-black py-4 font-bold uppercase text-sm transition transform active:scale-95 active:bg-zinc-200">Konfirmo</button>
         </div>
     </div>
 
     <div id="cancelView" class="hidden w-full max-w-sm">
         <button onclick="show('homeView')" class="text-xs text-zinc-500 mb-6 underline">← Kthehu</button>
-        <input type="text" id="delName" placeholder="Emri" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-2 text-sm">
-        <input type="tel" id="delPhone" placeholder="Telefoni" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-4 text-sm">
-        <button onclick="cancelBooking()" class="w-full bg-red-600 py-4 font-bold uppercase text-sm">Fshi</button>
+        <input type="text" id="delName" placeholder="Emri" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-2 text-sm focus:outline-none focus:border-white">
+        <input type="tel" id="delPhone" placeholder="Telefoni" class="w-full bg-zinc-900 border border-zinc-800 p-4 mb-4 text-sm focus:outline-none focus:border-white">
+        <button onclick="cancelBooking()" class="w-full bg-red-600 py-4 font-bold uppercase text-sm transition transform active:scale-95 active:bg-red-700">Fshi</button>
     </div>
 
     <script>
@@ -50,14 +51,17 @@
                 let d = new Date(dBase); 
                 d.setDate(d.getDate() + i); 
                 
-                // Formati YYYY-MM-DD i saktë për sistemin
                 let str = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
                 
                 let isWednesday = d.getDay() === 3;
                 let btn = document.createElement('button');
-                btn.className = `flex-1 p-3 text-xs ${isWednesday ? 'bg-zinc-950 text-zinc-700' : 'bg-zinc-900 border border-zinc-800'}`;
+                btn.className = `flex-1 p-3 text-xs transition transform active:scale-95 ${isWednesday ? 'bg-zinc-950 text-zinc-700 cursor-not-allowed' : 'bg-zinc-900 border border-zinc-800 active:bg-zinc-800'}`;
                 btn.textContent = isWednesday ? 'Pushim' : (i===0?'Sot':i===1?'Nesër':'Pasnesër');
-                if(!isWednesday) btn.onclick = () => { sDate = str; loadSlots(); };
+                if(!isWednesday) btn.onclick = () => { 
+                    sDate = str; 
+                    // Highlight për ditën e zgjedhur nëse do, ose thjesht ngarko slote
+                    loadSlots(); 
+                };
                 cont.appendChild(btn);
             }
         }
@@ -75,12 +79,30 @@
             ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'].forEach(t => {
                 let oraSlot = parseInt(t.split(':')[0]);
                 let isBooked = booked.includes(t);
+                
                 if (!(sDate === ditaAktuale && oraSlot <= oraAktuale)) {
                     let btn = document.createElement('button'); 
-                    btn.className = isBooked ? 'bg-zinc-950 border border-zinc-900 p-2 text-xs text-zinc-600' : 'bg-zinc-900 border border-zinc-800 p-2 text-xs';
+                    // Shtojmë efekte vizuale active dhe tranzicion
+                    btn.className = isBooked 
+                        ? 'bg-zinc-950 border border-zinc-900 p-2 text-xs text-zinc-600 cursor-not-allowed' 
+                        : 'bg-zinc-900 border border-zinc-800 p-2 text-xs transition transform active:scale-95 hover:border-zinc-500';
+                    
                     btn.textContent = isBooked ? t + ' (Zënë)' : t;
                     btn.disabled = isBooked;
-                    if(!isBooked) btn.onclick = () => { sTime = t; document.getElementById('bookingForm').classList.remove('hidden'); };
+                    
+                    if(!isBooked) {
+                        btn.onclick = () => { 
+                            sTime = t; 
+                            
+                            // Heqim ngjyrën e zgjedhur nga të gjithë butonat e tjerë dhe i japim të zgjedhurit ngjyrë të bardhë/theksuar
+                            document.querySelectorAll('#slotsContainer button').forEach(b => {
+                                if(!b.disabled) b.className = 'bg-zinc-900 border border-zinc-800 p-2 text-xs transition transform active:scale-95 hover:border-zinc-500';
+                            });
+                            btn.className = 'bg-white text-black font-bold border border-white p-2 text-xs transition transform active:scale-95';
+
+                            document.getElementById('bookingForm').classList.remove('hidden'); 
+                        };
+                    }
                     cont.appendChild(btn);
                 }
             });
