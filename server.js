@@ -28,7 +28,6 @@ app.post('/api/bookings', async (req, res) => {
     try {
         await pool.query("INSERT INTO bookings (customer_name, phone, date, time) VALUES ($1, $2, $3, $4)", [customer_name, phone, date, time]);
         
-        // Dërgimi i email-it është ndarë nga suksesi i rezervimit
         transporter.sendMail({
             from: process.env.EMAIL_USER,
             to: process.env.EMAIL_USER,
@@ -53,7 +52,27 @@ app.post('/api/delete-booking', async (req, res) => {
 app.get('/api/admin/all', async (req, res) => {
     try {
         const result = await pool.query("SELECT * FROM bookings ORDER BY date ASC, time ASC");
-        res.json(result.rows);
+        
+        // --- Kjo është e vetmja shtesë e re për të fshirë/hequr oraret e kaluara automatikisht ---
+        const nowInTirane = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Tirane" }));
+        const currYear = nowInTirane.getFullYear();
+        const currMonth = String(nowInTirane.getMonth() + 1).padStart(2, '0');
+        const currDay = String(nowInTirane.getDate()).padStart(2, '0');
+        const currDateStr = `${currYear}-${currMonth}-${currDay}`;
+        const currHour = nowInTirane.getHours();
+
+        const activeBookings = result.rows.filter(b => {
+            if (b.date > currDateStr) return true;
+            if (b.date === currDateStr) {
+                let bookingHour = parseInt(b.time.split(':')[0]);
+                return bookingHour > currHour;
+            }
+            return false;
+        });
+
+        res.json(activeBookings);
+        // ----------------------------------------------------------------------------------
+
     } catch (err) { res.json([]); }
 });
 
